@@ -10,7 +10,7 @@ def get_user_by_username(db: Session, username: str):
     return db.query(models.User).filter(models.User.username == username).first()
 
 
-def get_user_by_id(db: Session, user_id: str):
+def get_user_by_id(db: Session, user_id):
     return db.query(models.User).filter(models.User.id == user_id).first()
 
 
@@ -25,11 +25,11 @@ def create_user(db: Session, user: schemas.UserCreate):
     return db_user
 
 
-def get_user_categories(db: Session, user_id: str):
+def get_user_categories(db: Session, user_id):
     return db.query(models.Category).filter(models.Category.user_id == user_id).all()
 
 
-def create_category(db: Session, user_id: str, body: schemas.CategoryCreate):
+def create_category(db: Session, user_id, body: schemas.CategoryCreate):
     cat = models.Category(**body.model_dump(), user_id=user_id)
     db.add(cat)
     db.commit()
@@ -37,7 +37,7 @@ def create_category(db: Session, user_id: str, body: schemas.CategoryCreate):
     return cat
 
 
-def update_category(db: Session, cat_id: str, user_id: str, body: schemas.CategoryCreate):
+def update_category(db: Session, cat_id, user_id, body: schemas.CategoryCreate):
     cat = db.query(models.Category).filter(
         models.Category.id == cat_id, models.Category.user_id == user_id
     ).first()
@@ -50,7 +50,7 @@ def update_category(db: Session, cat_id: str, user_id: str, body: schemas.Catego
     return cat
 
 
-def delete_category(db: Session, cat_id: str, user_id: str):
+def delete_category(db: Session, cat_id, user_id):
     cat = db.query(models.Category).filter(
         models.Category.id == cat_id, models.Category.user_id == user_id
     ).first()
@@ -61,7 +61,7 @@ def delete_category(db: Session, cat_id: str, user_id: str):
     return {"ok": True}
 
 
-def get_user_tasks(db: Session, user_id: str, status_filter: str | None = None,
+def get_user_tasks(db: Session, user_id, status_filter: str | None = None,
                    priority_filter: str | None = None, category_id: str | None = None,
                    search: str | None = None):
     query = db.query(models.Task).filter(models.Task.user_id == user_id)
@@ -79,13 +79,13 @@ def get_user_tasks(db: Session, user_id: str, status_filter: str | None = None,
     return query.order_by(models.Task.created_at.desc()).all()
 
 
-def get_task_by_id(db: Session, task_id: str, user_id: str):
+def get_task_by_id(db: Session, task_id, user_id):
     return db.query(models.Task).filter(
         models.Task.id == task_id, models.Task.user_id == user_id
     ).first()
 
 
-def create_task(db: Session, user_id: str, body: schemas.TaskCreate):
+def create_task(db: Session, user_id, body: schemas.TaskCreate):
     task = models.Task(**body.model_dump(exclude={"reminder_enabled"}), user_id=user_id, reminder_enabled=body.reminder_enabled)
     db.add(task)
     db.commit()
@@ -93,7 +93,7 @@ def create_task(db: Session, user_id: str, body: schemas.TaskCreate):
     return task
 
 
-def update_task(db: Session, task_id: str, user_id: str, body: schemas.TaskUpdate):
+def update_task(db: Session, task_id, user_id, body: schemas.TaskUpdate):
     task = get_task_by_id(db, task_id, user_id)
     if not task:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
@@ -107,7 +107,7 @@ def update_task(db: Session, task_id: str, user_id: str, body: schemas.TaskUpdat
     return task
 
 
-def delete_task(db: Session, task_id: str, user_id: str):
+def delete_task(db: Session, task_id, user_id):
     task = get_task_by_id(db, task_id, user_id)
     if not task:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")

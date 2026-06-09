@@ -1,8 +1,17 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, Field
+from uuid import UUID
+
+from pydantic import BaseModel, Field, field_validator
 
 from .models import TaskStatus, TaskPriority
+
+
+def _to_str(val):
+    """Convert UUID or other types to string for JSON serialization."""
+    if isinstance(val, UUID):
+        return str(val)
+    return val
 
 
 # ---- Auth ----
@@ -27,6 +36,18 @@ class UserResponse(BaseModel):
     class Config:
         from_attributes = True
 
+    @field_validator("id", mode="before")
+    @classmethod
+    def validate_id(cls, v):
+        return _to_str(v)
+
+    @field_validator("created_at", mode="before")
+    @classmethod
+    def validate_created_at(cls, v):
+        if isinstance(v, datetime):
+            return v
+        return v
+
 
 class TokenResponse(BaseModel):
     access_token: str
@@ -50,6 +71,16 @@ class CategoryResponse(BaseModel):
     class Config:
         from_attributes = True
 
+    @field_validator("id", "user_id", mode="before")
+    @classmethod
+    def validate_uuid_fields(cls, v):
+        return _to_str(v)
+
+    @field_validator("created_at", mode="before")
+    @classmethod
+    def validate_created_at(cls, v):
+        return v
+
 
 # ---- Task ----
 
@@ -60,7 +91,14 @@ class TaskBase(BaseModel):
     priority: TaskPriority = TaskPriority.MEDIUM
     due_date: Optional[datetime] = None
     reminder_enabled: bool = False
-    category_id: Optional[str] = None
+    category_id: Optional[UUID] = None
+
+    @field_validator("category_id", mode="before")
+    @classmethod
+    def validate_category_id(cls, v):
+        if v is None or isinstance(v, UUID):
+            return v
+        return UUID(v)
 
 
 class TaskCreate(TaskBase):
@@ -74,7 +112,14 @@ class TaskUpdate(BaseModel):
     priority: Optional[TaskPriority] = None
     due_date: Optional[datetime] = None
     reminder_enabled: Optional[bool] = None
-    category_id: Optional[str] = None
+    category_id: Optional[UUID] = None
+
+    @field_validator("category_id", mode="before")
+    @classmethod
+    def validate_category_id(cls, v):
+        if v is None or isinstance(v, UUID):
+            return v
+        return UUID(v)
 
 
 class TaskResponse(TaskBase):
@@ -87,3 +132,8 @@ class TaskResponse(TaskBase):
 
     class Config:
         from_attributes = True
+
+    @field_validator("id", "user_id", mode="before")
+    @classmethod
+    def validate_uuid_fields(cls, v):
+        return _to_str(v)
