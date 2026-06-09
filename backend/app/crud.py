@@ -1,5 +1,6 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
+from datetime import datetime
 
 from . import models, schemas
 from .core.security import hash_password
@@ -56,5 +57,60 @@ def delete_category(db: Session, cat_id: str, user_id: str):
     if not cat:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
     db.delete(cat)
+    db.commit()
+    return {"ok": True}
+
+
+def get_user_tasks(db: Session, user_id: str, status_filter: str | None = None,
+                   priority_filter: str | None = None, category_id: str | None = None,
+                   search: str | None = None):
+    query = db.query(models.Task).filter(models.Task.user_id == user_id)
+    if status_filter:
+        query = query.filter(models.Task.status == models.TaskStatus(status_filter))
+    if priority_filter:
+        query = query.filter(models.Task.priority == models.TaskPriority(priority_filter))
+    if category_id:
+        query = query.filter(models.Task.category_id == category_id)
+    if search:
+        like = f"%{search}%"
+        query = query.filter(
+            models.Task.title.ilike(like) | ((models.Task.description != None) & models.Task.description.ilike(like))
+        )
+    return query.order_by(models.Task.created_at.desc()).all()
+
+
+def get_task_by_id(db: Session, task_id: str, user_id: str):
+    return db.query(models.Task).filter(
+        models.Task.id == task_id, models.Task.user_id == user_id
+    ).first()
+
+
+def create_task(db: Session, user_id: str, body: schemas.TaskCreate):
+    task = models.Task(**body.model_dump(exclude={"reminder_enabled"}), user_id=user_id, reminder_enabled=body.reminder_enabled)
+    db.add(task)
+    db.commit()
+    db.refresh(task)
+    return task
+
+
+def update_task(db: Session, task_id: str, user_id: str, body: schemas.TaskUpdate):
+    task = get_task_by_id(db, task_id, user_id)
+    if not task:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    update_data = body.model_dump(exclude_unset=True)
+    if body.status == models.TaskStatus.DONE and task.status != models.TaskStatus.DONE:
+        update_data["completed_at"] = datetime.utcnow()
+    for key, value in update_data.items():
+        setattr(task, key, value)
+    db.commit()
+    db.refresh(task)
+    return task
+
+
+def delete_task(db: Session, task_id: str, user_id: str):
+    task = get_task_by_id(db, task_id, user_id)
+    if not task:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    db.delete(task)
     db.commit()
     return {"ok": True}
