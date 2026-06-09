@@ -47,5 +47,15 @@ export const useTaskStore = defineStore('tasks', () => {
     await fetchTasks()
   }
 
-  return { tasks, categories, filter, fetchTasks, fetchCategories, addTask, updateTask, deleteTask }
+  async function addCategory(body: { name: string; color: string }) {
+    await api.post('/categories', body)
+    await fetchCategories()
+  }
+
+  async function deleteCategory(id: string) {
+    await api.delete(`/categories/${id}`)
+    await fetchCategories()
+  }
+
+  return { tasks, categories, filter, fetchTasks, fetchCategories, addTask, updateTask, deleteTask, addCategory, deleteCategory }
 })
