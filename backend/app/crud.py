@@ -22,3 +22,39 @@ def create_user(db: Session, user: schemas.UserCreate):
     db.commit()
     db.refresh(db_user)
     return db_user
+
+
+def get_user_categories(db: Session, user_id: str):
+    return db.query(models.Category).filter(models.Category.user_id == user_id).all()
+
+
+def create_category(db: Session, user_id: str, body: schemas.CategoryCreate):
+    cat = models.Category(**body.model_dump(), user_id=user_id)
+    db.add(cat)
+    db.commit()
+    db.refresh(cat)
+    return cat
+
+
+def update_category(db: Session, cat_id: str, user_id: str, body: schemas.CategoryCreate):
+    cat = db.query(models.Category).filter(
+        models.Category.id == cat_id, models.Category.user_id == user_id
+    ).first()
+    if not cat:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
+    for key, value in body.model_dump().items():
+        setattr(cat, key, value)
+    db.commit()
+    db.refresh(cat)
+    return cat
+
+
+def delete_category(db: Session, cat_id: str, user_id: str):
+    cat = db.query(models.Category).filter(
+        models.Category.id == cat_id, models.Category.user_id == user_id
+    ).first()
+    if not cat:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
+    db.delete(cat)
+    db.commit()
+    return {"ok": True}
