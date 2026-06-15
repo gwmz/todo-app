@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 from jose import jwt
 
-from ..crud import get_user_by_username, create_user
+from ..crud import get_user_by_id, get_user_by_username, create_user
 from ..database import get_db
 from ..core.security import verify_password, create_access_token, settings
 from ..schemas import UserCreate, UserLogin, UserResponse, TokenResponse
@@ -45,7 +45,7 @@ def login(body: UserLogin, db: Session = Depends(get_db)):
 
 
 @router.get("/me", response_model=UserResponse)
-def get_me(db: Session = Depends(get_db), user_id: str = Depends(get_current_user_id)):
+def get_me(db: Session = Depends(get_db), user_id: UUID = Depends(get_current_user_id)):
     db_user = get_user_by_id(db, user_id)
     if not db_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")

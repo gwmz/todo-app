@@ -23,12 +23,12 @@
         <h3
           class="font-medium"
           :class="[
-            task.status === 'DONE' ? 'line-through text-gray-400' : 'text-gray-800',
+            task.status === 'DONE' ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-800 dark:text-gray-100',
           ]"
         >
           {{ task.title }}
         </h3>
-        <p v-if="task.description" class="text-sm text-gray-500 mt-1 line-clamp-2">{{ task.description }}</p>
+        <p v-if="task.description" class="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{{ task.description }}</p>
 
         <!-- Tags -->
         <div class="flex flex-wrap gap-1.5 mt-2">
@@ -41,33 +41,33 @@
           </span>
           <span
             v-if="task.priority === 'HIGH'"
-            class="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600"
+            class="text-xs px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400"
           >
-            High
+            {{ t('taskCard.high') }}
           </span>
           <span
             v-if="task.priority === 'MEDIUM'"
-            class="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-600"
+            class="text-xs px-2 py-0.5 rounded-full bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400"
           >
-            Medium
+            {{ t('taskCard.medium') }}
           </span>
           <span
             v-if="task.priority === 'LOW'"
-            class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-600"
+            class="text-xs px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400"
           >
-            Low
+            {{ t('taskCard.low') }}
           </span>
           <span
             v-if="task.due_date"
-            class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500"
+            class="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
           >
-            Due: {{ new Date(task.due_date).toLocaleDateString() }}
+            {{ t('taskCard.due') }} {{ new Date(task.due_date).toLocaleDateString() }}
           </span>
         </div>
       </div>
 
       <!-- Delete -->
-      <button @click="handleDelete" class="text-gray-300 hover:text-red-400 transition-colors">
+      <button @click="handleDelete" class="text-gray-300 dark:text-gray-500 hover:text-red-400 transition-colors">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
         </svg>
@@ -78,7 +78,9 @@
 
 <script setup lang="ts">
 import type { Task } from '@/types'
+import { useTranslation } from '@/i18n'
 
+const { t } = useTranslation()
 const props = defineProps<{ task: Task }>()
 const emit = defineEmits<{
   'update:status': [{ id: string; status: string }]

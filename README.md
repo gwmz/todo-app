@@ -19,10 +19,10 @@ A personal TODO management web app with a beautiful, animated UI.
 ```bash
 cd backend
 pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
+uvicorn app.main:app --reload --port 8080
 ```
 
-API docs: http://127.0.0.1:8000/docs
+API docs: http://127.0.0.1:8080/docs
 
 ### Frontend
 
@@ -32,7 +32,7 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173
+Open http://localhost:9000
 
 ### First-Time Setup
 
